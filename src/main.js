@@ -9,6 +9,11 @@ let areaViewY = 20 + 2;
 
 let areaScale = 16;
 
+let zoomPreviousX = -1;
+let zoomPreviousY = -1;
+let zoomAreaX;
+let zoomAreaY;
+
 let currentColor = "#000000";
 
 let fileDialog = document.createElement("input");
@@ -204,6 +209,13 @@ function handleMouseDown(e) {
 
 function handleWheel(e) {
   if (e.x >= 32*3 + 2 && e.y >= 22) {
+    if (e.x != zoomPreviousX || e.y != zoomPreviousY) {
+      zoomAreaX = (e.x - areaViewX) / areaScale;
+      zoomAreaY = (e.y - areaViewY) / areaScale;
+      zoomPreviousX = e.x;
+      zoomPreviousY = e.y;
+    }
+    
     if (e.deltaY < 0) {
       areaScale++;
     } else {
@@ -213,6 +225,9 @@ function handleWheel(e) {
         areaScale = 1;
       }
     }
+    
+    areaViewX = Math.floor(e.x - zoomAreaX * areaScale);
+    areaViewY = Math.floor(e.y - zoomAreaY * areaScale);
     
     redraw();
   }
