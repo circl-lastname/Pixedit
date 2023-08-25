@@ -4,10 +4,10 @@ let ctx = canvas.getContext("2d");
 let area = document.createElement("canvas");
 let areaCtx = area.getContext("2d");
 
-let areaViewX = 32*3 + 2;
-let areaViewY = 20 + 2;
+let areaViewX;
+let areaViewY;
 
-let areaScale = 16;
+let areaScale;
 
 let zoomPreviousX = -1;
 let zoomPreviousY = -1;
@@ -95,6 +95,20 @@ let colorBar = [
   "#e0e0e0",
   "#ffffff",
 ];
+
+function setAreaPosition() {
+  let heightOption = Math.floor((canvas.height - 22*2) / area.height);
+  let widthOption = Math.floor((canvas.width - (32*3+2)*2) / area.width);
+  
+  if (heightOption <= widthOption) {
+    areaScale = heightOption;
+  } else {
+    areaScale = widthOption;
+  }
+  
+  areaViewX = Math.floor(canvas.width / 2 - (area.width * areaScale) / 2);
+  areaViewY = Math.floor(canvas.height / 2 - (area.height * areaScale) / 2);
+}
 
 function initBar(bar) {
   let barOffset = 0;
@@ -241,6 +255,8 @@ async function handleFileDialog(e) {
   
   areaCtx.drawImage(bitmap, 0, 0);
   
+  setAreaPosition();
+  
   bitmap.close();
   
   redraw();
@@ -267,6 +283,8 @@ function actionNew() {
   
   area.width = width;
   area.height = height;
+  
+  setAreaPosition();
   
   areaCtx.fillStyle = "#ffffff";
   areaCtx.fillRect(0, 0, width, height);
@@ -318,6 +336,8 @@ function actionChangeSize() {
   area = newArea;
   areaCtx = newAreaCtx;
   
+  setAreaPosition();
+  
   redraw();
 }
 
@@ -329,11 +349,7 @@ function actionAddColor() {
 }
 
 function actionResetZoom() {
-  areaViewX = 32*3 + 2;
-  areaViewY = 20 + 2;
-  
-  areaScale = 1;
-  
+  setAreaPosition();
   redraw();
 }
 
@@ -390,6 +406,8 @@ function init() {
   
   area.width = 32;
   area.height = 32;
+  
+  setAreaPosition();
   
   areaCtx.fillStyle = "#ffffff";
   areaCtx.fillRect(0, 0, 32, 32);
