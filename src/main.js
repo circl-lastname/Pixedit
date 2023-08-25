@@ -273,31 +273,35 @@ function handleColorDialog(e) {
 }
 
 function actionNew() {
-  let width = parseInt(prompt("Width?"));
-  
-  while (Number.isNaN(width) || width <= 0) {
-    width = parseInt(prompt("Width?"));
+  if (confirm("Are you sure?")) {
+    let width = parseInt(prompt("Width?"));
+    
+    while (Number.isNaN(width) || width <= 0) {
+      width = parseInt(prompt("Width?"));
+    }
+    
+    let height = parseInt(prompt("Height?"));
+    
+    while (Number.isNaN(height) || height <= 0) {
+      height = parseInt(prompt("Height?"));
+    }
+    
+    area.width = width;
+    area.height = height;
+    
+    setAreaPosition();
+    
+    areaCtx.fillStyle = "#ffffff";
+    areaCtx.fillRect(0, 0, width, height);
+    
+    redraw();
   }
-  
-  let height = parseInt(prompt("Height?"));
-  
-  while (Number.isNaN(height) || height <= 0) {
-    height = parseInt(prompt("Height?"));
-  }
-  
-  area.width = width;
-  area.height = height;
-  
-  setAreaPosition();
-  
-  areaCtx.fillStyle = "#ffffff";
-  areaCtx.fillRect(0, 0, width, height);
-  
-  redraw();
 }
 
 function actionOpen() {
-  fileDialog.click();
+  if (confirm("Are you sure?")) {
+    fileDialog.click();
+  }
 }
 
 function actionSave() {
