@@ -426,6 +426,9 @@ function init() {
 init();
 
 window.addEventListener("resize", handleResize);
+window.addEventListener("beforeunload", (e) => {
+  e.preventDefault();
+});
 
 canvas.addEventListener("mousemove", handleMouseMove);
 canvas.addEventListener("mousedown", handleMouseDown);
