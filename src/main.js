@@ -299,9 +299,7 @@ function actionNew() {
 }
 
 function actionOpen() {
-  if (confirm("Are you sure?")) {
-    fileDialog.click();
-  }
+  fileDialog.click();
 }
 
 function actionSave() {
