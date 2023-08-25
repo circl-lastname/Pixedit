@@ -106,6 +106,10 @@ function setAreaPosition() {
     areaScale = widthOption;
   }
   
+  if (areaScale < 1) {
+    areaScale = 1;
+  }
+  
   areaViewX = Math.floor(canvas.width / 2 - (area.width * areaScale) / 2);
   areaViewY = Math.floor(canvas.height / 2 - (area.height * areaScale) / 2);
 }
