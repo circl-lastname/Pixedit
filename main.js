@@ -137,7 +137,7 @@ function drawBar(bar) {
     
     ctx.fillText(bar[item].text, barOffset, 10);
     
-    ctx.fillStyle = "#808080";
+    ctx.fillStyle = "#606060";
     ctx.fillRect(barOffset + bar[item].textWidth + 4, 0, 2, 20);
     
     barOffset += bar[item].textWidth + 4+2+4;
@@ -366,10 +366,10 @@ function redraw() {
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(area, areaViewX, areaViewY, area.width*areaScale, area.height*areaScale);
   
-  ctx.fillStyle = "#404040";
+  ctx.fillStyle = "#00000080";
   ctx.fillRect(0, 20 + 2, 32*3, canvas.height - 20 - 2);
   
-  ctx.fillStyle = "#808080";
+  ctx.fillStyle = "#606060";
   ctx.fillRect(32*3, 20 + 2, 2, canvas.height - 20 - 2);
   
   let colorBarOffsetX = 0
@@ -390,10 +390,10 @@ function redraw() {
   ctx.fillStyle = currentColor;
   ctx.fillRect(0, canvas.height - 32, 32, 32);
   
-  ctx.fillStyle = "#404040";
+  ctx.fillStyle = "#00000080";
   ctx.fillRect(0, 0, canvas.width, 20);
   
-  ctx.fillStyle = "#808080";
+  ctx.fillStyle = "#606060";
   ctx.fillRect(0, 20, canvas.width, 2);
   
   drawBar(topBar);
