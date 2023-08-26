@@ -428,6 +428,8 @@ init();
 window.addEventListener("resize", handleResize);
 window.addEventListener("beforeunload", (e) => {
   e.preventDefault();
+  e.returnValue = "You have unsaved changes";
+  return "You have unsaved changes";
 });
 
 canvas.addEventListener("mousemove", handleMouseMove);
