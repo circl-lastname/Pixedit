@@ -1,3 +1,5 @@
+let debug = false;
+
 let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
 
@@ -15,6 +17,8 @@ let zoomAreaX;
 let zoomAreaY;
 
 let currentColor = "#000000";
+
+let fillMode = false;
 
 let fileDialog = document.createElement("input");
 let colorDialog = document.createElement("input");
@@ -41,6 +45,10 @@ let topBar = [
   {
     text: "Add color",
     action: actionAddColor
+  },
+  {
+    text: "Fill",
+    action: actionFill
   },
   {
     text: "Reset position",
@@ -112,6 +120,95 @@ function setAreaPosition() {
   
   areaViewX = Math.floor(canvas.width / 2 - (area.width * areaScale) / 2);
   areaViewY = Math.floor(canvas.height / 2 - (area.height * areaScale) / 2);
+}
+
+function eqPixel(a, b) {
+  return a.r == b.r && a.g == b.g && a.b == b.b;
+}
+
+function hexToPixel(hexcode) {
+  let r = parseInt(hexcode.slice(1, 3), 16);
+  let g = parseInt(hexcode.slice(3, 5), 16);
+  let b = parseInt(hexcode.slice(5, 7), 16);
+  
+  return { r: r, g: g, b: b };
+}
+
+function getPixel(imageData, x, y) {
+  if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) {
+    return { r: NaN, g: NaN, b: NaN };
+  }
+  
+  let pixel = (y*imageData.width + x) * 4;
+  
+  return { r: imageData.data[pixel+0], g: imageData.data[pixel+1], b: imageData.data[pixel+2] };
+}
+
+function setPixel(imageData, x, y, color) {
+  let pixel = (y*imageData.width + x) * 4;
+  
+  imageData.data[pixel+0] = color.r;
+  imageData.data[pixel+1] = color.g;
+  imageData.data[pixel+2] = color.b;
+  
+  if (debug) {
+    areaCtx.putImageData(imageData, 0, 0);
+    redraw();
+  }
+}
+
+function floodFill(imageData, x, y, flooder, floodee) {
+  if (!floodee) {
+    floodee = getPixel(imageData, x, y);
+  }
+  
+  if (eqPixel(flooder, floodee)) {
+    return;
+  }
+  
+  let queue = [];
+  
+  while (true) {
+    let upOpen = true;
+    let downOpen = true;
+    
+    while (eqPixel(getPixel(imageData, x, y), floodee)) {
+      x--;
+    }
+    x++;
+    
+    while (eqPixel(getPixel(imageData, x, y), floodee)) {
+      if (eqPixel(getPixel(imageData, x, y-1), floodee)) {
+        if (upOpen) {
+          queue.push({x: x, y: y-1});
+          upOpen = false;
+        }
+      } else {
+        upOpen = true;
+      }
+      
+      if (eqPixel(getPixel(imageData, x, y+1), floodee)) {
+        if (downOpen) {
+          queue.push({x: x, y: y+1});
+          downOpen = false;
+        }
+      } else {
+        downOpen = true;
+      }
+      
+      setPixel(imageData, x, y, flooder);
+      x++;
+    }
+    
+    let next = queue.pop();
+    
+    if (next) {
+      x = next.x;
+      y = next.y;
+    } else {
+      break;
+    }
+  }
 }
 
 function initBar(bar) {
@@ -217,8 +314,18 @@ function handleMouseDown(e) {
     let areaX = Math.floor((e.x - areaViewX) / areaScale);
     let areaY = Math.floor((e.y - areaViewY) / areaScale);
     
-    areaCtx.fillStyle = currentColor;
-    areaCtx.fillRect(areaX, areaY, 1, 1);
+    if (!fillMode) {
+      areaCtx.fillStyle = currentColor;
+      areaCtx.fillRect(areaX, areaY, 1, 1);
+    } else {
+      let imageData = areaCtx.getImageData(0, 0, area.width, area.height);
+      
+      floodFill(imageData, areaX, areaY, hexToPixel(currentColor));
+      
+      areaCtx.putImageData(imageData, 0, 0);
+      
+      fillMode = false;
+    }
     
     redraw();
     return;
@@ -354,6 +461,12 @@ function actionAddColor() {
   redraw();
 }
 
+function actionFill() {
+  fillMode = !fillMode;
+  
+  redraw();
+}
+
 function actionResetZoom() {
   setAreaPosition();
   redraw();
@@ -389,6 +502,14 @@ function redraw() {
   
   ctx.fillStyle = currentColor;
   ctx.fillRect(0, canvas.height - 32, 32, 32);
+  
+  if (fillMode) {
+    ctx.fillStyle = "#ffffff";
+    ctx.textBaseline = "middle";
+    ctx.font = "16px sans-serif";
+    
+    ctx.fillText("Fill", 32 + 8, canvas.height - 16);
+  }
   
   ctx.fillStyle = "#00000080";
   ctx.fillRect(0, 0, canvas.width, 20);
