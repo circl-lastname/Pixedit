@@ -261,7 +261,7 @@ function handleResize() {
 
 function handleMouseMove(e) {
   if (e.x >= 32*3 + 2 && e.y >= 22) {
-    if (e.buttons == 1) {
+    if (e.buttons == 1 && !fillMode) {
       let areaX = Math.floor((e.x - areaViewX) / areaScale);
       let areaY = Math.floor((e.y - areaViewY) / areaScale);
       
