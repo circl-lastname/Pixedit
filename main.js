@@ -259,6 +259,13 @@ function handleResize() {
   redraw();
 }
 
+function handleKeyDown(e) {
+  if (e.ctrlKey && e.key == "s") {
+    e.preventDefault();
+    actionSave();
+  }
+}
+
 function handleMouseMove(e) {
   if (e.x >= 32*3 + 2 && e.y >= 22) {
     if (e.buttons == 1 && !fillMode) {
@@ -545,19 +552,21 @@ function init() {
 init();
 
 window.addEventListener("resize", handleResize);
+
 window.addEventListener("beforeunload", (e) => {
   e.preventDefault();
   e.returnValue = "You have unsaved changes";
   return "You have unsaved changes";
 });
 
-canvas.addEventListener("mousemove", handleMouseMove);
-canvas.addEventListener("mousedown", handleMouseDown);
-canvas.addEventListener("wheel", handleWheel);
-
-fileDialog.addEventListener("change", handleFileDialog);
-colorDialog.addEventListener("change", handleColorDialog);
+document.addEventListener("keydown", handleKeyDown);
+document.addEventListener("mousemove", handleMouseMove);
+document.addEventListener("mousedown", handleMouseDown);
+document.addEventListener("wheel", handleWheel);
 
 document.addEventListener('contextmenu', (e) => {
   e.preventDefault();
 });
+
+fileDialog.addEventListener("change", handleFileDialog);
+colorDialog.addEventListener("change", handleColorDialog);
