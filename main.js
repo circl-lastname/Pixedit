@@ -198,6 +198,12 @@ function floodFill(imageData, x, y, flooder, floodee) {
     if (debug) {
       areaCtx.putImageData(imageData, 0, 0);
       redraw();
+      
+      console.clear();
+      
+      for (let item in queue) {
+        console.log(queue[item]);
+      }
     }
     
     let next = queue.pop();
