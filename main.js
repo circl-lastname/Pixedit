@@ -150,11 +150,6 @@ function setPixel(imageData, x, y, color) {
   imageData.data[pixel+0] = color.r;
   imageData.data[pixel+1] = color.g;
   imageData.data[pixel+2] = color.b;
-  
-  if (debug) {
-    areaCtx.putImageData(imageData, 0, 0);
-    redraw();
-  }
 }
 
 function floodFill(imageData, x, y, flooder, floodee) {
@@ -198,6 +193,11 @@ function floodFill(imageData, x, y, flooder, floodee) {
       
       setPixel(imageData, x, y, flooder);
       x++;
+    }
+    
+    if (debug) {
+      areaCtx.putImageData(imageData, 0, 0);
+      redraw();
     }
     
     let next = queue.pop();
