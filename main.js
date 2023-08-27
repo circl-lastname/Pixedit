@@ -323,8 +323,6 @@ function handleMouseDown(e) {
       floodFill(imageData, areaX, areaY, hexToPixel(currentColor));
       
       areaCtx.putImageData(imageData, 0, 0);
-      
-      fillMode = false;
     }
     
     redraw();
