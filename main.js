@@ -201,6 +201,10 @@ function getPixel(imageData, x, y) {
 }
 
 function setPixel(imageData, x, y, color) {
+  if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) {
+    return;
+  }
+  
   let pixel = (y*imageData.width + x) * 4;
   
   imageData.data[pixel+0] = color.r;
