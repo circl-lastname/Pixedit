@@ -466,8 +466,8 @@ function handleMouseMove(e) {
       let areaY = Math.floor((e.y - areaViewY) / areaScale);
       
       if (areaX < 0 || areaX >= area.width || areaY < 0 || areaY >= area.height) {
-        drawPreviousX = NaN;
-        drawPreviousY = NaN;
+        drawPreviousX = areaX;
+        drawPreviousY = areaY;
         return;
       }
       
