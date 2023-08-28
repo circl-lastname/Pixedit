@@ -8,7 +8,6 @@ let areaCtx = area.getContext("2d");
 
 let areaViewX;
 let areaViewY;
-
 let areaScale;
 
 let areaChanged;
@@ -20,13 +19,14 @@ let zoomPreviousY = -1;
 let zoomAreaX;
 let zoomAreaY;
 
+let tool = 0;
 let currentColor = "#000000";
 
-let tool = 0;
+let drawPreviousX = NaN;
+let drawPreviousY = NaN;
 
 let fileDialog = document.createElement("input");
 let colorDialog = document.createElement("input");
-
 let downloadAnchor = document.createElement("a");
 
 let topBar = [
@@ -67,6 +67,7 @@ let topBar = [
 let bottomBar = [
   {
     text: "Pencil",
+    continous: true,
     draw: drawPencil
   },
   {
@@ -272,6 +273,106 @@ function floodFill(imageData, x, y, flooder, floodee) {
   }
 }
 
+// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+
+function drawLineLow(imageData, x0, y0, x1, y1, color) {
+  let dx;
+  let dy;
+  let yi;
+  let d;
+  
+  dx = x1 - x0;
+  dy = y1 - y0;
+  yi = 1;
+  if (dy < 0) {
+    yi = -1;
+    dy = -dy;
+  }
+  d = (2 * dy) - dx;
+  y = y0;
+  
+  let x = x0;
+  if (x == x1) {
+    return;
+  }
+  while (true) {
+    setPixel(imageData, x, y, color);
+    if (d > 0) {
+      y += yi;
+      d += (2 * (dy - dx));
+    } else {
+      d += 2*dy;
+    }
+    
+    if (x == x1) {
+      break;
+    }
+    
+    if (x0 < x1) {
+      x++;
+    } else {
+      x--;
+    }
+  }
+}
+
+function drawLineHigh(imageData, x0, y0, x1, y1, color) {
+  let dx;
+  let dy;
+  let xi;
+  let d;
+  
+  dx = x1 - x0;
+  dy = y1 - y0;
+  xi = 1;
+  if (dx < 0) {
+    xi = -1;
+    dx = -dx;
+  }
+  d = (2 * dx) - dy;
+  x = x0;
+  
+  let y = y0;
+  if (y == y1) {
+    return;
+  }
+  while (true) {
+    setPixel(imageData, x, y, color);
+    if (d > 0) {
+      x += xi;
+      d += (2 * (dx - dy));
+    } else {
+      d += 2*dx;
+    }
+    
+    if (y == y1) {
+      break;
+    }
+    
+    if (y0 < y1) {
+      y++;
+    } else {
+      y--;
+    }
+  }
+}
+
+function drawLine(imageData, x0, y0, x1, y1, color) {
+  if (Math.abs(y1 - y0) < Math.abs(x1 - x0)) {
+    if (x0 > x1) {
+      drawLineLow(imageData, x1, y1, x0, y0, color);
+    } else {
+      drawLineLow(imageData, x0, y0, x1, y1, color);
+    }
+  } else {
+    if (y0 > y1) {
+      drawLineHigh(imageData, x1, y1, x0, y0, color);
+    } else {
+      drawLineHigh(imageData, x0, y0, x1, y1, color);
+    }
+  }
+}
+
 function initBar(bar) {
   let barOffset = 0;
   
@@ -360,15 +461,24 @@ function handleKeyDown(e) {
 
 function handleMouseMove(e) {
   if (e.x >= 32*3 + 2 && e.y >= 22 && e.y < canvas.height - 22) {
-    if (e.buttons == 1 && tool == 0) {
+    if (e.buttons == 1 && bottomBar[tool].continous) {
       let areaX = Math.floor((e.x - areaViewX) / areaScale);
       let areaY = Math.floor((e.y - areaViewY) / areaScale);
       
       if (areaX < 0 || areaX >= area.width || areaY < 0 || areaY >= area.height) {
+        drawPreviousX = NaN;
+        drawPreviousY = NaN;
         return;
       }
       
-      bottomBar[tool].draw(areaX, areaY);
+      if (drawPreviousX) {
+        bottomBar[tool].draw(areaX, areaY, drawPreviousX, drawPreviousY);
+      } else {
+        bottomBar[tool].draw(areaX, areaY);
+      }
+      
+      drawPreviousX = areaX;
+      drawPreviousY = areaY;
       
       areaChanged = true;
       
@@ -440,6 +550,9 @@ function handleMouseUp(e) {
   if (areaChanged) {
     pushUndo();
   }
+  
+  drawPreviousX = NaN;
+  drawPreviousY = NaN;
 }
 
 function handleWheel(e) {
@@ -600,9 +713,17 @@ function actionResetZoom() {
   redraw();
 }
 
-function drawPencil(x, y) {
-  areaCtx.fillStyle = currentColor;
-  areaCtx.fillRect(x, y, 1, 1);
+function drawPencil(x, y, pX, pY) {
+  if (pX) {
+    let imageData = areaCtx.getImageData(0, 0, area.width, area.height);
+    
+    drawLine(imageData, pX, pY, x, y, hexToPixel(currentColor));
+    
+    areaCtx.putImageData(imageData, 0, 0);
+  } else {
+    areaCtx.fillStyle = currentColor;
+    areaCtx.fillRect(x, y, 1, 1);
+  }
 }
 
 function drawFill(x, y) {
