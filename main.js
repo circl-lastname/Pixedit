@@ -377,6 +377,39 @@ function drawLine(imageData, x0, y0, x1, y1, color) {
   }
 }
 
+function dispatchDraw(e) {
+  let areaX = Math.floor((e.x - areaViewX) / areaScale);
+  let areaY = Math.floor((e.y - areaViewY) / areaScale);
+  
+  if (areaX < 0 || areaX >= area.width || areaY < 0 || areaY >= area.height) {
+    if (drawPreviousX) {
+      if (drawPreviousX < 0 || drawPreviousX >= area.width || drawPreviousY < 0 || drawPreviousY >= area.height) {
+        drawPreviousX = areaX;
+        drawPreviousY = areaY;
+        return;
+      }
+    } else {
+      drawPreviousX = areaX;
+      drawPreviousY = areaY;
+      return;
+    }
+  }
+  
+  if (drawPreviousX) {
+    bottomBar[tool].draw(areaX, areaY, drawPreviousX, drawPreviousY);
+  } else {
+    bottomBar[tool].draw(areaX, areaY);
+  }
+  
+  drawPreviousX = areaX;
+  drawPreviousY = areaY;
+  
+  areaChanged = true;
+  
+  redraw();
+  return;
+}
+
 function initBar(bar) {
   let barOffset = 0;
   
@@ -466,35 +499,7 @@ function handleKeyDown(e) {
 function handleMouseMove(e) {
   if (e.x >= 32*3 + 2 && e.y >= 22 && e.y < canvas.height - 22) {
     if (e.buttons == 1 && bottomBar[tool].continous) {
-      let areaX = Math.floor((e.x - areaViewX) / areaScale);
-      let areaY = Math.floor((e.y - areaViewY) / areaScale);
-      
-      if (areaX < 0 || areaX >= area.width || areaY < 0 || areaY >= area.height) {
-        if (drawPreviousX) {
-          if (drawPreviousX < 0 || drawPreviousX >= area.width || drawPreviousY < 0 || drawPreviousY >= area.height) {
-            drawPreviousX = areaX;
-            drawPreviousY = areaY;
-            return;
-          }
-        } else {
-          drawPreviousX = areaX;
-          drawPreviousY = areaY;
-          return;
-        }
-      }
-      
-      if (drawPreviousX) {
-        bottomBar[tool].draw(areaX, areaY, drawPreviousX, drawPreviousY);
-      } else {
-        bottomBar[tool].draw(areaX, areaY);
-      }
-      
-      drawPreviousX = areaX;
-      drawPreviousY = areaY;
-      
-      areaChanged = true;
-      
-      redraw();
+      dispatchDraw(e);
       return;
     }
     
@@ -542,35 +547,7 @@ function handleMouseDown(e) {
   }
   
   if (e.buttons == 1 && e.x >= 32*3 + 2 && e.y >= 22 && e.y < canvas.height - 22) {
-    let areaX = Math.floor((e.x - areaViewX) / areaScale);
-    let areaY = Math.floor((e.y - areaViewY) / areaScale);
-    
-    if (areaX < 0 || areaX >= area.width || areaY < 0 || areaY >= area.height) {
-      if (drawPreviousX) {
-        if (drawPreviousX < 0 || drawPreviousX >= area.width || drawPreviousY < 0 || drawPreviousY >= area.height) {
-          drawPreviousX = areaX;
-          drawPreviousY = areaY;
-          return;
-        }
-      } else {
-        drawPreviousX = areaX;
-        drawPreviousY = areaY;
-        return;
-      }
-    }
-    
-    if (drawPreviousX) {
-      bottomBar[tool].draw(areaX, areaY, drawPreviousX, drawPreviousY);
-    } else {
-      bottomBar[tool].draw(areaX, areaY);
-    }
-    
-    drawPreviousX = areaX;
-    drawPreviousY = areaY;
-    
-    areaChanged = true;
-    
-    redraw();
+    dispatchDraw(e);
     return;
   }
 }
