@@ -22,7 +22,7 @@ let zoomAreaY;
 
 let currentColor = "#000000";
 
-let fillMode = false;
+let tool = 0;
 
 let fileDialog = document.createElement("input");
 let colorDialog = document.createElement("input");
@@ -59,12 +59,23 @@ let topBar = [
     action: actionRedo
   },
   {
-    text: "Fill",
-    action: actionFill
-  },
-  {
     text: "Reset position",
     action: actionResetZoom
+  }
+];
+
+let bottomBar = [
+  {
+    text: "Pencil",
+    draw: drawPencil
+  },
+  {
+    text: "Fill",
+    draw: drawFill
+  },
+  {
+    text: "Color picker",
+    draw: drawEyedropper
   }
 ];
 
@@ -160,6 +171,14 @@ function resetUndoState() {
 
 function eqPixel(a, b) {
   return a.r == b.r && a.g == b.g && a.b == b.b;
+}
+
+function pixelToHex(pixel) {
+  let r = pixel.r.toString(16).padStart(2, "0");
+  let g = pixel.g.toString(16).padStart(2, "0");
+  let b = pixel.b.toString(16).padStart(2, "0");
+  
+  return `#${r}${g}${b}`;
 }
 
 function hexToPixel(hexcode) {
@@ -266,30 +285,50 @@ function initBar(bar) {
   }
 }
 
-function drawBar(bar) {
+function drawBar(bar, x, y) {
   let barOffset = 4;
   
   for (let item in bar) {
+    ctx.fillStyle = "#606060";
+    
+    if (!bar[item].selected) {
+      ctx.fillRect(x + barOffset + bar[item].textWidth + 4, y, 2, 20);
+    } else {
+      ctx.fillRect(x + barOffset - 4 - 1, y, 1 + 4 + bar[item].textWidth + 4 + 2, 20);
+    }
+    
     ctx.fillStyle = "#ffffff";
     ctx.textBaseline = "middle";
     ctx.font = "16px sans-serif";
     
-    ctx.fillText(bar[item].text, barOffset, 10);
-    
-    ctx.fillStyle = "#606060";
-    ctx.fillRect(barOffset + bar[item].textWidth + 4, 0, 2, 20);
+    ctx.fillText(bar[item].text, x + barOffset, y + 10);
     
     barOffset += bar[item].textWidth + 4+2+4;
   }
 }
 
-function clickBar(bar, e) {
+function clickBar(bar, e, x) {
   for (let item in bar) {
-    if (e.x >= bar[item].x && e.x < bar[item].x + bar[item].width) {
+    if (e.x >= x + bar[item].x && e.x < x + bar[item].x + bar[item].width) {
       if (bar[item].action) {
         bar[item].action();
         return;
       }
+    }
+  }
+}
+
+function clickDrawBar(bar, e, x) {
+  for (let item in bar) {
+    if (e.x >= x + bar[item].x && e.x < x + bar[item].x + bar[item].width) {
+      bar[tool].selected = false;
+      
+      tool = item;
+      
+      bar[tool].selected = true;
+      
+      redraw();
+      return;
     }
   }
 }
@@ -320,8 +359,8 @@ function handleKeyDown(e) {
 }
 
 function handleMouseMove(e) {
-  if (e.x >= 32*3 + 2 && e.y >= 22) {
-    if (e.buttons == 1 && !fillMode) {
+  if (e.x >= 32*3 + 2 && e.y >= 22 && e.y < canvas.height - 22) {
+    if (e.buttons == 1 && tool == 0) {
       let areaX = Math.floor((e.x - areaViewX) / areaScale);
       let areaY = Math.floor((e.y - areaViewY) / areaScale);
       
@@ -329,8 +368,7 @@ function handleMouseMove(e) {
         return;
       }
       
-      areaCtx.fillStyle = currentColor;
-      areaCtx.fillRect(areaX, areaY, 1, 1);
+      bottomBar[tool].draw(areaX, areaY);
       
       areaChanged = true;
       
@@ -350,7 +388,12 @@ function handleMouseMove(e) {
 
 function handleMouseDown(e) {
   if (e.y < 20) {
-    clickBar(topBar, e);
+    clickBar(topBar, e, 0);
+    return;
+  }
+  
+  if (e.y >= canvas.height - 20) {
+    clickDrawBar(bottomBar, e, 0);
     return;
   }
   
@@ -376,7 +419,7 @@ function handleMouseDown(e) {
     return;
   }
   
-  if (e.buttons == 1 && e.x >= 32*3 + 2 && e.y >= 22) {
+  if (e.buttons == 1 && e.x >= 32*3 + 2 && e.y >= 22 && e.y < canvas.height - 22) {
     let areaX = Math.floor((e.x - areaViewX) / areaScale);
     let areaY = Math.floor((e.y - areaViewY) / areaScale);
     
@@ -384,16 +427,7 @@ function handleMouseDown(e) {
       return;
     }
     
-    if (!fillMode) {
-      areaCtx.fillStyle = currentColor;
-      areaCtx.fillRect(areaX, areaY, 1, 1);
-    } else {
-      let imageData = areaCtx.getImageData(0, 0, area.width, area.height);
-      
-      floodFill(imageData, areaX, areaY, hexToPixel(currentColor));
-      
-      areaCtx.putImageData(imageData, 0, 0);
-    }
+    bottomBar[tool].draw(areaX, areaY);
     
     areaChanged = true;
     
@@ -409,7 +443,7 @@ function handleMouseUp(e) {
 }
 
 function handleWheel(e) {
-  if (e.x >= 32*3 + 2 && e.y >= 22) {
+  if (e.x >= 32*3 + 2 && e.y >= 22 && e.y < canvas.height - 22) {
     if (e.x != zoomPreviousX || e.y != zoomPreviousY) {
       zoomAreaX = (e.x - areaViewX) / areaScale;
       zoomAreaY = (e.y - areaViewY) / areaScale;
@@ -561,15 +595,30 @@ function actionRedo() {
   }
 }
 
-function actionFill() {
-  fillMode = !fillMode;
-  
-  redraw();
-}
-
 function actionResetZoom() {
   setAreaPosition();
   redraw();
+}
+
+function drawPencil(x, y) {
+  areaCtx.fillStyle = currentColor;
+  areaCtx.fillRect(x, y, 1, 1);
+}
+
+function drawFill(x, y) {
+  let imageData = areaCtx.getImageData(0, 0, area.width, area.height);
+  
+  floodFill(imageData, x, y, hexToPixel(currentColor));
+  
+  areaCtx.putImageData(imageData, 0, 0);
+}
+
+function drawEyedropper(x, y) {
+  let imageData = areaCtx.getImageData(0, 0, area.width, area.height);
+  let color = pixelToHex(getPixel(imageData, x, y));
+  
+  currentColor = color;
+  colorBar.push(color);
 }
 
 function redraw() {
@@ -580,10 +629,10 @@ function redraw() {
   ctx.drawImage(area, areaViewX, areaViewY, area.width*areaScale, area.height*areaScale);
   
   ctx.fillStyle = "#00000080";
-  ctx.fillRect(0, 20 + 2, 32*3, canvas.height - 20 - 2);
+  ctx.fillRect(0, 20 + 2, 32*3, canvas.height - 22*2);
   
   ctx.fillStyle = "#606060";
-  ctx.fillRect(32*3, 20 + 2, 2, canvas.height - 20 - 2);
+  ctx.fillRect(32*3, 20 + 2, 2, canvas.height - 22*2);
   
   let colorBarOffsetX = 0
   let colorBarOffsetY = 0
@@ -601,15 +650,7 @@ function redraw() {
   }
   
   ctx.fillStyle = currentColor;
-  ctx.fillRect(0, canvas.height - 32, 32, 32);
-  
-  if (fillMode) {
-    ctx.fillStyle = "#ffffff";
-    ctx.textBaseline = "middle";
-    ctx.font = "16px sans-serif";
-    
-    ctx.fillText("Fill", 32 + 8, canvas.height - 16);
-  }
+  ctx.fillRect(0, canvas.height - 22 - 32, 32, 32);
   
   ctx.fillStyle = "#00000080";
   ctx.fillRect(0, 0, canvas.width, 20);
@@ -617,7 +658,15 @@ function redraw() {
   ctx.fillStyle = "#606060";
   ctx.fillRect(0, 20, canvas.width, 2);
   
-  drawBar(topBar);
+  drawBar(topBar, 0, 0);
+  
+  ctx.fillStyle = "#00000080";
+  ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+  
+  ctx.fillStyle = "#606060";
+  ctx.fillRect(0, canvas.height - 22, canvas.width, 2);
+  
+  drawBar(bottomBar, 0, canvas.height - 20);
 }
 
 function init() {
@@ -642,6 +691,9 @@ function init() {
   resetUndoState();
   
   initBar(topBar);
+  initBar(bottomBar);
+  
+  bottomBar[tool].selected = true;
   
   redraw();
 }
