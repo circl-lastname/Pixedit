@@ -11,6 +11,10 @@ let areaViewY;
 
 let areaScale;
 
+let areaChanged;
+let undoList;
+let undoIndex;
+
 let zoomPreviousX = -1;
 let zoomPreviousY = -1;
 let zoomAreaX;
@@ -45,6 +49,14 @@ let topBar = [
   {
     text: "Add color",
     action: actionAddColor
+  },
+  {
+    text: "Undo",
+    action: actionUndo
+  },
+  {
+    text: "Redo",
+    action: actionRedo
   },
   {
     text: "Fill",
@@ -120,6 +132,30 @@ function setAreaPosition() {
   
   areaViewX = Math.floor(canvas.width / 2 - (area.width * areaScale) / 2);
   areaViewY = Math.floor(canvas.height / 2 - (area.height * areaScale) / 2);
+}
+
+function pushUndo() {
+  areaChanged = false;
+  
+  if (undoIndex < undoList.length-1) {
+    undoList.splice(undoIndex+1);
+  }
+  
+  undoList.push(areaCtx.getImageData(0, 0, area.width, area.height));
+  undoIndex++;
+  
+  if (undoList.length > 50) {
+    undoList.shift();
+    undoIndex--;
+  }
+}
+
+function resetUndoState() {
+  areaChanged = false;
+  undoList = [];
+  undoIndex = -1;
+  
+  pushUndo();
 }
 
 function eqPixel(a, b) {
@@ -266,9 +302,20 @@ function handleResize() {
 }
 
 function handleKeyDown(e) {
-  if (e.ctrlKey && e.key == "s") {
-    e.preventDefault();
-    actionSave();
+  if (e.ctrlKey) {
+    switch (e.key) {
+      case "s":
+        e.preventDefault();
+        actionSave();
+      break;
+      case "z":
+        actionUndo();
+      break;
+      case "Z":
+      case "y":
+        actionRedo();
+      break;
+    }
   }
 }
 
@@ -278,8 +325,14 @@ function handleMouseMove(e) {
       let areaX = Math.floor((e.x - areaViewX) / areaScale);
       let areaY = Math.floor((e.y - areaViewY) / areaScale);
       
+      if (areaX < 0 || areaX >= area.width || areaY < 0 || areaY >= area.height) {
+        return;
+      }
+      
       areaCtx.fillStyle = currentColor;
       areaCtx.fillRect(areaX, areaY, 1, 1);
+      
+      areaChanged = true;
       
       redraw();
       return;
@@ -327,6 +380,10 @@ function handleMouseDown(e) {
     let areaX = Math.floor((e.x - areaViewX) / areaScale);
     let areaY = Math.floor((e.y - areaViewY) / areaScale);
     
+    if (areaX < 0 || areaX >= area.width || areaY < 0 || areaY >= area.height) {
+      return;
+    }
+    
     if (!fillMode) {
       areaCtx.fillStyle = currentColor;
       areaCtx.fillRect(areaX, areaY, 1, 1);
@@ -338,8 +395,16 @@ function handleMouseDown(e) {
       areaCtx.putImageData(imageData, 0, 0);
     }
     
+    areaChanged = true;
+    
     redraw();
     return;
+  }
+}
+
+function handleMouseUp(e) {
+  if (areaChanged) {
+    pushUndo();
   }
 }
 
@@ -377,6 +442,7 @@ async function handleFileDialog(e) {
   
   areaCtx.drawImage(bitmap, 0, 0);
   
+  resetUndoState();
   setAreaPosition();
   
   bitmap.close();
@@ -411,6 +477,8 @@ function actionNew() {
     
     areaCtx.fillStyle = "#ffffff";
     areaCtx.fillRect(0, 0, width, height);
+    
+    resetUndoState();
     
     redraw();
   }
@@ -460,6 +528,7 @@ function actionChangeSize() {
   area = newArea;
   areaCtx = newAreaCtx;
   
+  resetUndoState();
   setAreaPosition();
   
   redraw();
@@ -470,6 +539,26 @@ function actionAddColor() {
   colorDialog.click();
   
   redraw();
+}
+
+function actionUndo() {
+  if (undoIndex > 0) {
+    areaCtx.putImageData(undoList[undoIndex-1], 0, 0);
+    
+    undoIndex--;
+    
+    redraw();
+  }
+}
+
+function actionRedo() {
+  if (undoIndex < undoList.length-1) {
+    areaCtx.putImageData(undoList[undoIndex+1], 0, 0);
+    
+    undoIndex++;
+    
+    redraw();
+  }
 }
 
 function actionFill() {
@@ -550,6 +639,8 @@ function init() {
   areaCtx.fillStyle = "#ffffff";
   areaCtx.fillRect(0, 0, 32, 32);
   
+  resetUndoState();
+  
   initBar(topBar);
   
   redraw();
@@ -568,6 +659,7 @@ window.addEventListener("beforeunload", (e) => {
 document.addEventListener("keydown", handleKeyDown);
 document.addEventListener("mousemove", handleMouseMove);
 document.addEventListener("mousedown", handleMouseDown);
+document.addEventListener("mouseup", handleMouseUp);
 document.addEventListener("wheel", handleWheel);
 
 document.addEventListener('contextmenu', (e) => {
