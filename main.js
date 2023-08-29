@@ -218,10 +218,12 @@ function floodFill(imageData, x, y, flooder, floodee) {
   }
   
   if (eqPixel(flooder, floodee)) {
-    return;
+    return false;
   }
   
   let queue = [];
+  
+  let pixelPut = false;
   
   while (true) {
     let upOpen = true;
@@ -252,6 +254,7 @@ function floodFill(imageData, x, y, flooder, floodee) {
       }
       
       setPixel(imageData, x, y, flooder);
+      pixelPut = true;
       x++;
     }
     
@@ -275,6 +278,8 @@ function floodFill(imageData, x, y, flooder, floodee) {
       break;
     }
   }
+  
+  return pixelPut;
 }
 
 // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
@@ -399,8 +404,6 @@ function dispatchDraw(e) {
   
   drawPreviousX = areaX;
   drawPreviousY = areaY;
-  
-  areaChanged = true;
   
   redraw();
   return;
@@ -726,14 +729,20 @@ function drawPencil(x, y, pX, pY) {
     areaCtx.fillStyle = currentColor;
     areaCtx.fillRect(x, y, 1, 1);
   }
+  
+  areaChanged = true;
 }
 
 function drawFill(x, y) {
   let imageData = areaCtx.getImageData(0, 0, area.width, area.height);
   
-  floodFill(imageData, x, y, hexToPixel(currentColor));
+  if (!floodFill(imageData, x, y, hexToPixel(currentColor))) {
+    return;
+  }
   
   areaCtx.putImageData(imageData, 0, 0);
+  
+  areaChanged = true;
 }
 
 function drawEyedropper(x, y) {
