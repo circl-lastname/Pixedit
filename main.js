@@ -61,6 +61,10 @@ let topBar = [
   {
     text: "Reset position",
     action: actionResetZoom
+  },
+  {
+    text: "Help",
+    action: actionHelp
   }
 ];
 
@@ -728,6 +732,33 @@ function actionRedo() {
 function actionResetZoom() {
   setAreaPosition();
   redraw();
+}
+
+function actionHelp() {
+  alert("Image controls:\n" +
+        "Use the left mouse button to use the selected tool\n" +
+        "Use the scroll wheel to zoom\n" +
+        "Use the right mouse button to move around\n" +
+        "\n" +
+        "Top bar:\n" +
+        "New - Create a new image\n" +
+        "Open - Open a saved image\n" +
+        "Save (Ctrl+s) - Save the image to your system\n" +
+        "Change size - Change size of current image\n" +
+        "Add color - Add a color using a color picker dialog\n" +
+        "Undo (Ctrl+z) - Undo a change\n" +
+        "Redo (Ctrl+y or Ctrl+Shift+z) - Redo a change\n" +
+        "Reset position - Reset zoom and position of image to default\n" +
+        "\n" +
+        "Bottom bar:\n" +
+        "You may use keys 1-3 to select\n" +
+        "Pencil - Draw normally\n" +
+        "Fill - Fill an area\n" +
+        "Color picker - Add a color from the image\n" +
+        "\n" +
+        "Color sidebar:\n" +
+        "Use the left mouse button to select the color\n" +
+        "Use the right mouse button to remove one");
 }
 
 function drawPencil(x, y, pX, pY) {
