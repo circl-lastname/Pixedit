@@ -741,7 +741,10 @@ function drawEyedropper(x, y) {
   let color = pixelToHex(getPixel(imageData, x, y));
   
   currentColor = color;
-  colorBar.push(color);
+  
+  if (!colorBar.includes(color)) {
+    colorBar.push(color);
+  }
 }
 
 function redraw() {
