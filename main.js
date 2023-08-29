@@ -395,11 +395,7 @@ function dispatchDraw(e) {
     }
   }
   
-  if (drawPreviousX) {
-    bottomBar[tool].draw(areaX, areaY, drawPreviousX, drawPreviousY);
-  } else {
-    bottomBar[tool].draw(areaX, areaY);
-  }
+  bottomBar[tool].draw(areaX, areaY, drawPreviousX, drawPreviousY);
   
   drawPreviousX = areaX;
   drawPreviousY = areaY;
@@ -720,7 +716,7 @@ function actionResetZoom() {
 }
 
 function drawPencil(x, y, pX, pY) {
-  if (pX) {
+  if (!isNaN(pX)) {
     let imageData = areaCtx.getImageData(0, 0, area.width, area.height);
     
     drawLine(imageData, pX, pY, x, y, hexToPixel(currentColor));
