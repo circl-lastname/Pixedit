@@ -492,6 +492,18 @@ function handleKeyDown(e) {
         actionRedo();
       break;
     }
+  } else if (e.key.charCodeAt(0) >= 0x30 && e.key.charCodeAt(0) <= 0x39) {
+    let possibleTool = parseInt(e.key) - 1;
+    
+    if (bottomBar[possibleTool]) {
+      bottomBar[tool].selected = false;
+      
+      tool = possibleTool;
+      
+      bottomBar[tool].selected = true;
+      
+      redraw();
+    }
   }
 }
 
