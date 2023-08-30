@@ -25,6 +25,10 @@ let currentColor = "#000000";
 let drawPreviousX = NaN;
 let drawPreviousY = NaN;
 
+let straightLineStarted = false;
+let straightLineDirection;
+let straightLineOrigin;
+
 let fileDialog = document.createElement("input");
 let colorDialog = document.createElement("input");
 let downloadAnchor = document.createElement("a");
@@ -73,6 +77,12 @@ let bottomBar = [
     text: "Pencil",
     continous: true,
     draw: drawPencil
+  },
+  {
+    text: "Straight line",
+    continous: true,
+    draw: drawStraightLine,
+    stop: stopStraightLine
   },
   {
     text: "Fill",
@@ -572,6 +582,10 @@ function handleMouseUp(e) {
     pushUndo();
   }
   
+  if (bottomBar[tool].stop) {
+    bottomBar[tool].stop();
+  }
+  
   drawPreviousX = NaN;
   drawPreviousY = NaN;
 }
@@ -751,8 +765,9 @@ function actionHelp() {
         "Reset position - Reset zoom and position of image to default\n" +
         "\n" +
         "Bottom bar:\n" +
-        "You may use keys 1-3 to select\n" +
+        "You may use keys 1-4 to select\n" +
         "Pencil - Draw normally\n" +
+        "Straight line - Draw either a horizontal or vertical line\n" +
         "Fill - Fill an area\n" +
         "Color picker - Add a color from the image\n" +
         "\n" +
@@ -774,6 +789,46 @@ function drawPencil(x, y, pX, pY) {
   }
   
   areaChanged = true;
+}
+
+function drawStraightLine(x, y, pX, pY) {
+  if (!isNaN(pX)) {
+    if (!straightLineStarted) {
+      let dX = Math.abs(x - pX);
+      let dY = Math.abs(y - pY);
+      
+      if (dX > dY) {
+        straightLineDirection = 0;
+        straightLineOrigin = pY;
+        straightLineStarted = true;
+      } else if (dY > dX) {
+        straightLineDirection = 1;
+        straightLineOrigin = pX;
+        straightLineStarted = true;
+      }
+    }
+    
+    if (straightLineStarted) {
+      let imageData = areaCtx.getImageData(0, 0, area.width, area.height);
+      
+      if (straightLineDirection == 0) {
+        drawLine(imageData, pX, straightLineOrigin, x, straightLineOrigin, hexToPixel(currentColor));
+      } else {
+        drawLine(imageData, straightLineOrigin, pY, straightLineOrigin, y, hexToPixel(currentColor));
+      }
+      
+      areaCtx.putImageData(imageData, 0, 0);
+      areaChanged = true;
+    }
+  } else {
+    areaCtx.fillStyle = currentColor;
+    areaCtx.fillRect(x, y, 1, 1);
+    areaChanged = true;
+  }
+}
+
+function stopStraightLine() {
+  straightLineStarted = false;
 }
 
 function drawFill(x, y) {
