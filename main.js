@@ -554,7 +554,7 @@ function handleMouseDown(e) {
     
     let index = Math.floor(palY / 32) * 3 + Math.floor(e.x / 32);
     
-    if (index <= colorBar.length) {
+    if (index < colorBar.length) {
       if (e.buttons == 1) {
         currentColor = colorBar[index];
         
