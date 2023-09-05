@@ -820,10 +820,6 @@ function drawStraightLine(x, y, pX, pY) {
       areaCtx.putImageData(imageData, 0, 0);
       areaChanged = true;
     }
-  } else {
-    areaCtx.fillStyle = currentColor;
-    areaCtx.fillRect(x, y, 1, 1);
-    areaChanged = true;
   }
 }
 
