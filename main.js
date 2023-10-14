@@ -634,6 +634,7 @@ async function handleFileDialog(e) {
 
 function handleColorDialog(e) {
   colorBar[colorBar.length-1] = colorDialog.value;
+  currentColor = colorDialog.value;
   
   redraw();
 }
