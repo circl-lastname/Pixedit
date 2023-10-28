@@ -458,7 +458,7 @@ function drawBar(bar, x, y) {
   }
 }
 
-function clickBar(bar, e, x) {
+function clickTopBar(bar, e, x) {
   for (let item in bar) {
     if (e.x >= x + bar[item].x && e.x < x + bar[item].x + bar[item].width) {
       if (bar[item].action) {
@@ -469,7 +469,7 @@ function clickBar(bar, e, x) {
   }
 }
 
-function clickDrawBar(bar, e, x) {
+function clickBottomBar(bar, e, x) {
   for (let item in bar) {
     if (e.x >= x + bar[item].x && e.x < x + bar[item].x + bar[item].width) {
       bar[tool].selected = false;
@@ -540,12 +540,12 @@ function handleMouseMove(e) {
 
 function handleMouseDown(e) {
   if (e.y < 20) {
-    clickBar(topBar, e, 0);
+    clickTopBar(topBar, e, 0);
     return;
   }
   
   if (e.y >= canvas.height - 20) {
-    clickDrawBar(bottomBar, e, 0);
+    clickBottomBar(bottomBar, e, 0);
     return;
   }
   
