@@ -10,6 +10,9 @@ let areaViewX;
 let areaViewY;
 let areaScale;
 
+let touchDownTimeout;
+let touchDownFlag = false;
+
 let areaChanged;
 let undoList;
 let undoIndex;
@@ -538,7 +541,11 @@ function handleMouseMove(e) {
   }
 }
 
-function handleMouseDown(e) {
+function handleMouseDown(e, isFromTouch) {
+  if (!!isFromTouch != touchDownFlag) {
+    return;
+  }
+  
   if (e.y < 20) {
     clickTopBar(topBar, e, 0);
     return;
@@ -588,6 +595,27 @@ function handleMouseUp(e) {
   
   drawPreviousX = NaN;
   drawPreviousY = NaN;
+}
+
+function handleTouchMove(e) {
+  let x = e.touches[0].clientX;
+  let y = e.touches[0].clientY;
+  
+  if (x >= 32*3 + 2 && y >= 22 && y < canvas.height - 22 && bottomBar[tool].continous) {
+    dispatchDraw({ x: x, y: y });
+    return;
+  }
+}
+
+function handleTouchDown(e) {
+  touchDownFlag = true;
+  clearTimeout(touchDownTimeout);
+  touchDownTimeout = setTimeout(() => {touchDownFlag = false}, 1000);
+  
+  let x = e.touches[0].clientX;
+  let y = e.touches[0].clientY;
+  
+  handleMouseDown({ x: x, y: y, buttons: 1 }, true);
 }
 
 function handleWheel(e) {
@@ -942,6 +970,9 @@ document.addEventListener("keydown", handleKeyDown);
 document.addEventListener("mousemove", handleMouseMove);
 document.addEventListener("mousedown", handleMouseDown);
 document.addEventListener("mouseup", handleMouseUp);
+document.addEventListener("touchmove", handleTouchMove);
+document.addEventListener("touchstart", handleTouchDown);
+document.addEventListener("touchend", handleMouseUp);
 document.addEventListener("wheel", handleWheel);
 
 document.addEventListener('contextmenu', (e) => {
