@@ -281,8 +281,8 @@ function floodFill(imageData, x, y, flooder, floodee) {
       
       console.clear();
       
-      for (let item in queue) {
-        console.log(queue[item]);
+      for (let item of queue) {
+        console.log(item);
       }
     }
     
@@ -429,43 +429,43 @@ function dispatchDraw(e) {
 function initBar(bar) {
   let barOffset = 0;
   
-  for (let item in bar) {
+  for (let item of bar) {
     ctx.font = "16px sans-serif";
-    bar[item].x = barOffset;
-    bar[item].textWidth = ctx.measureText(bar[item].text).width;
-    bar[item].width = bar[item].textWidth + 4+4;
+    item.x = barOffset;
+    item.textWidth = ctx.measureText(item.text).width;
+    item.width = item.textWidth + 4+4;
     
-    barOffset += bar[item].width + 2;
+    barOffset += item.width + 2;
   }
 }
 
 function drawBar(bar, x, y) {
   let barOffset = 4;
   
-  for (let item in bar) {
+  for (let item of bar) {
     ctx.fillStyle = "#606060";
     
-    if (!bar[item].selected) {
-      ctx.fillRect(x + barOffset + bar[item].textWidth + 4, y, 2, 20);
+    if (!item.selected) {
+      ctx.fillRect(x + barOffset + item.textWidth + 4, y, 2, 20);
     } else {
-      ctx.fillRect(x + barOffset - 4 - 1, y, 1 + 4 + bar[item].textWidth + 4 + 2, 20);
+      ctx.fillRect(x + barOffset - 4 - 1, y, 1 + 4 + item.textWidth + 4 + 2, 20);
     }
     
     ctx.fillStyle = "#ffffff";
     ctx.textBaseline = "middle";
     ctx.font = "16px sans-serif";
     
-    ctx.fillText(bar[item].text, x + barOffset, y + 10);
+    ctx.fillText(item.text, x + barOffset, y + 10);
     
-    barOffset += bar[item].textWidth + 4+2+4;
+    barOffset += item.textWidth + 4+2+4;
   }
 }
 
 function clickTopBar(bar, e, x) {
-  for (let item in bar) {
-    if (e.x >= x + bar[item].x && e.x < x + bar[item].x + bar[item].width) {
-      if (bar[item].action) {
-        bar[item].action();
+  for (let item of bar) {
+    if (e.x >= x + item.x && e.x < x + item.x + item.width) {
+      if (item.action) {
+        item.action();
         return;
       }
     }
@@ -895,8 +895,8 @@ function redraw() {
   let colorBarOffsetX = 0
   let colorBarOffsetY = 0
   
-  for (let color in colorBar) {
-    ctx.fillStyle = colorBar[color];
+  for (let color of colorBar) {
+    ctx.fillStyle = color;
     ctx.fillRect(colorBarOffsetX, 20 + 2 + colorBarOffsetY, 32, 32);
     
     colorBarOffsetX += 32;
