@@ -2,6 +2,8 @@ let debug = false;
 
 let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
+let canvasWidth;
+let canvasHeight;
 
 let area = document.createElement("canvas");
 let areaCtx = area.getContext("2d");
@@ -116,8 +118,8 @@ let colorBar = [
 ];
 
 function setAreaPosition() {
-  let heightOption = Math.floor((canvas.height - 22*2) / area.height);
-  let widthOption = Math.floor((canvas.width - (32*3+2)*2) / area.width);
+  let heightOption = Math.floor((canvasHeight - 22*2) / area.height);
+  let widthOption = Math.floor((canvasWidth - (32*3+2)*2) / area.width);
   
   if (heightOption <= widthOption) {
     areaScale = heightOption;
@@ -129,8 +131,8 @@ function setAreaPosition() {
     areaScale = 1;
   }
   
-  areaViewX = Math.floor(canvas.width / 2 - (area.width * areaScale) / 2);
-  areaViewY = Math.floor(canvas.height / 2 - (area.height * areaScale) / 2);
+  areaViewX = Math.floor(canvasWidth / 2 - (area.width * areaScale) / 2);
+  areaViewY = Math.floor(canvasHeight / 2 - (area.height * areaScale) / 2);
 }
 
 function pushUndo() {
@@ -458,8 +460,16 @@ function clickBottomBar(bar, e, x) {
 }
 
 function handleResize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.style.width = `${window.innerWidth}px`;
+  canvas.style.height = `${window.innerHeight}px`;
+  
+  canvas.width = Math.ceil(window.innerWidth * window.devicePixelRatio);
+  canvas.height = Math.ceil(window.innerHeight * window.devicePixelRatio);
+  
+  canvasWidth = window.innerWidth;
+  canvasHeight = window.innerHeight;
+  
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
   
   redraw();
 }
@@ -495,7 +505,7 @@ function handleKeyDown(e) {
 }
 
 function handleMouseMove(e) {
-  if (e.x >= 32*3 + 2 && e.y >= 22 && e.y < canvas.height - 22) {
+  if (e.x >= 32*3 + 2 && e.y >= 22 && e.y < canvasHeight - 22) {
     if (e.buttons == 1 && bottomBar[tool].continous) {
       dispatchDraw(e);
       return;
@@ -521,7 +531,7 @@ function handleMouseDown(e, isFromTouch) {
     return;
   }
   
-  if (e.y >= canvas.height - 20) {
+  if (e.y >= canvasHeight - 20) {
     clickBottomBar(bottomBar, e, 0);
     return;
   }
@@ -548,7 +558,7 @@ function handleMouseDown(e, isFromTouch) {
     return;
   }
   
-  if (e.buttons == 1 && e.x >= 32*3 + 2 && e.y >= 22 && e.y < canvas.height - 22) {
+  if (e.buttons == 1 && e.x >= 32*3 + 2 && e.y >= 22 && e.y < canvasHeight - 22) {
     dispatchDraw(e);
     return;
   }
@@ -571,7 +581,7 @@ function handleTouchMove(e) {
   let x = e.touches[0].clientX;
   let y = e.touches[0].clientY;
   
-  if (x >= 32*3 + 2 && y >= 22 && y < canvas.height - 22 && bottomBar[tool].continous) {
+  if (x >= 32*3 + 2 && y >= 22 && y < canvasHeight - 22 && bottomBar[tool].continous) {
     dispatchDraw({ x: x, y: y });
     return;
   }
@@ -589,7 +599,7 @@ function handleTouchDown(e) {
 }
 
 function handleWheel(e) {
-  if (e.x >= 32*3 + 2 && e.y >= 22 && e.y < canvas.height - 22) {
+  if (e.x >= 32*3 + 2 && e.y >= 22 && e.y < canvasHeight - 22) {
     if (e.x != zoomPreviousX || e.y != zoomPreviousY) {
       zoomAreaX = (e.x - areaViewX) / areaScale;
       zoomAreaY = (e.y - areaViewY) / areaScale;
@@ -851,16 +861,16 @@ function drawEyedropper(x, y) {
 
 function redraw() {
   ctx.fillStyle = "#202020";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(area, areaViewX, areaViewY, area.width*areaScale, area.height*areaScale);
   
   ctx.fillStyle = "#00000080";
-  ctx.fillRect(0, 20 + 2, 32*3, canvas.height - 22*2);
+  ctx.fillRect(0, 20 + 2, 32*3, canvasHeight - 22*2);
   
   ctx.fillStyle = "#606060";
-  ctx.fillRect(32*3, 20 + 2, 2, canvas.height - 22*2);
+  ctx.fillRect(32*3, 20 + 2, 2, canvasHeight - 22*2);
   
   let colorBarOffsetX = 0
   let colorBarOffsetY = 0
@@ -878,23 +888,23 @@ function redraw() {
   }
   
   ctx.fillStyle = currentColor;
-  ctx.fillRect(0, canvas.height - 22 - 32, 32, 32);
+  ctx.fillRect(0, canvasHeight - 22 - 32, 32, 32);
   
   ctx.fillStyle = "#00000080";
-  ctx.fillRect(0, 0, canvas.width, 20);
+  ctx.fillRect(0, 0, canvasWidth, 20);
   
   ctx.fillStyle = "#606060";
-  ctx.fillRect(0, 20, canvas.width, 2);
+  ctx.fillRect(0, 20, canvasWidth, 2);
   
   drawBar(topBar, 0, 0);
   
   ctx.fillStyle = "#00000080";
-  ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+  ctx.fillRect(0, canvasHeight - 20, canvasWidth, 20);
   
   ctx.fillStyle = "#606060";
-  ctx.fillRect(0, canvas.height - 22, canvas.width, 2);
+  ctx.fillRect(0, canvasHeight - 22, canvasWidth, 2);
   
-  drawBar(bottomBar, 0, canvas.height - 20);
+  drawBar(bottomBar, 0, canvasHeight - 20);
 }
 
 function init() {
@@ -905,8 +915,16 @@ function init() {
   
   downloadAnchor.download = "image.png";
   
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.style.width = `${window.innerWidth}px`;
+  canvas.style.height = `${window.innerHeight}px`;
+  
+  canvas.width = Math.ceil(window.innerWidth * window.devicePixelRatio);
+  canvas.height = Math.ceil(window.innerHeight * window.devicePixelRatio);
+  
+  canvasWidth = window.innerWidth;
+  canvasHeight = window.innerHeight;
+  
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
   
   area.width = 32;
   area.height = 32;
