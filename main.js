@@ -599,7 +599,7 @@ function handleTouchDown(e) {
 }
 
 function handleWheel(e) {
-  if (e.x >= 32*3 + 2 && e.y >= 22 && e.y < canvasHeight - 22) {
+  if (e.deltaY != 0 && e.x >= 32*3 + 2 && e.y >= 22 && e.y < canvasHeight - 22) {
     if (e.x != zoomPreviousX || e.y != zoomPreviousY) {
       zoomAreaX = (e.x - areaViewX) / areaScale;
       zoomAreaY = (e.y - areaViewY) / areaScale;
