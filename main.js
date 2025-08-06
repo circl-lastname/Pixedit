@@ -967,5 +967,10 @@ document.addEventListener('contextmenu', (e) => {
   e.preventDefault();
 });
 
+// Firefox 141
+document.addEventListener('dragstart', (e) => {
+  e.preventDefault();
+});
+
 fileDialog.addEventListener("change", handleFileDialog);
 colorDialog.addEventListener("change", handleColorDialog);
