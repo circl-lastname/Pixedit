@@ -963,12 +963,12 @@ document.addEventListener("touchstart", handleTouchDown);
 document.addEventListener("touchend", handleMouseUp);
 document.addEventListener("wheel", handleWheel);
 
-document.addEventListener('contextmenu', (e) => {
+document.addEventListener("contextmenu", (e) => {
   e.preventDefault();
 });
 
 // Firefox 141
-document.addEventListener('dragstart', (e) => {
+document.addEventListener("dragstart", (e) => {
   e.preventDefault();
 });
 
